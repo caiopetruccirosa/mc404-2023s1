@@ -5,11 +5,11 @@
 # Salvar registradores nas funcoes que tem ecall
 
 .data
-# Digitos descritos por linhas
-# Cada linha ocupa 29 bits, sendo um entre cada bit (5 no total)
-# e 4 bits por digito do RA (6 digitos no total)
-# Para completar os 32 bits, existe um padding de 2 bits zerados 
-# na esquerda e 1 bit zerado na direita
+# Digitos do RA descritos por linhas:
+# Os digitos ocupam 24 bits (4 bits por digito e 6 digitos no total)
+# e existe 1 bit zerado entre cada digito (5 bits no total). Adicionalmente,
+# existe um padding de 2 bits zerados na esquerda e 1 bit zerado na direita.
+# Dessa forma, cada linha é representada por 32 bits no total.
 digitos_ra:
     .word 0b00011000001001100011000001011110
     .word 0b00100100011010010100100011010000
@@ -22,6 +22,12 @@ digitos_ra:
 
 .text
 main:
+    # Armazena os registradores na pilha
+    addi sp, sp, -12
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    
     # Carrega o vetor de linhas no registrador s0
     la s0, digitos_ra
 
@@ -31,19 +37,25 @@ main:
 loop_digitos:
     beq s1, zero, fim_main
 
-    # Faz uma pausa para mostrar a animacao mais lentamente
-    li a0, 350
-    call Pausa
-
-    # Monstra os digitos na tela de acordo com a iteracao
+    # Mostra os digitos na tela de acordo com a iteracao atual
     mv a0, s0
     mv a1, s1
     call MostrarDigitos
+
+    # Faz uma pausa para mostrar a animacao mais lentamente
+    li a0, 350
+    call Pausa
 
     addi s1, s1, -1
     j loop_digitos
 
 fim_main:
+    # Recupera os registradores da pilha
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    addi sp, sp, 12
+
     # Encerra o programa
     li a0, 10
     ecall
@@ -67,7 +79,7 @@ fim_pausa:
 # Recebe o endereco de memoria do vetor com os digitos em a0 e a iteracao 
 # atual em a1 (deve ser um numero entre 0 e 47, possibilitando 48 iteracoes)
 MostrarDigitos:
-    # Armazena os registradores na pilha pois a funcao nao eh folha ja que possui uma chamada ecall
+    # Armazena os registradores na pilha, pois a funcao nao eh folha ja que possui uma chamada ecall
     addi sp, sp, -20
     sw s0, 0(sp)
     sw s1, 4(sp)
@@ -112,7 +124,7 @@ fim_shift:
     j loop_linhas
 
 fim_mostrar:
-    # Devolve os registradores da pilha
+    # Recupera os registradores da pilha
     lw s0, 0(sp)
     lw s1, 4(sp)
     lw s2, 8(sp)
