@@ -14,3 +14,5 @@ main:
     lui s1, 5000
     li s0, 5000
     li s1, 0xDEADBEEF
+    li a0, -0xDEADBEEF
+    li fp, 0b11110010101111111001100110000000

@@ -88,15 +88,13 @@ def translate_pseudo(ins):
         case 'li':
             rd = ins[1]
             imm = int(ins[2], base=0)
-            upper_lim = 1 << 12
-            sign_lim = 1 << 11
             lower_bits = limit_bits(imm, 12)
             upper_bits = limit_bits((imm >> 12), 20)
-            if lower_bits >= sign_lim:
-                upper_bits = limit_bits(upper_bits + 1, 20)
-            print(f'0x{upper_bits:X}')
             translated = []
-            if imm >= upper_lim:
+            if (imm >= (1 << 12)) or (imm < ((1 << 12)*(-1))):
+                lower_sign = (lower_bits >> 11) & 1
+                if lower_sign == 1:
+                    upper_bits = limit_bits(upper_bits + 1, 20)
                 translated.append(['lui', rd, str(upper_bits)])
             translated.append(['addi', rd, rd, str(lower_bits)])
             return translated
