@@ -49,11 +49,11 @@ def preprocess_raw_instruction(raw_ins):
         ins[2] = rs2
         ins[3] = imm
     elif mne == 'slli':
-        imm = int(ins[3])
+        imm = int(ins[3], base=0)
         limited_imm = limit_bits(imm, 5)
         ins[3] = str(limited_imm)
     elif mne == 'call':
-        imm = int(ins[1])
+        imm = int(ins[1], base=0)
         offset = imm - INSTRUCTION_POSITION
         offset20 = limit_bits((offset >> 20), 1) << 19
         offset20 += limit_bits((offset >> 1), 10) << 9
@@ -62,7 +62,7 @@ def preprocess_raw_instruction(raw_ins):
         offset20 = limit_bits(offset20, 20)
         ins[1] = str(offset20)
     elif mne == 'beq':
-        imm = int(ins[3])
+        imm = int(ins[3], base=0)
         offset = imm - INSTRUCTION_POSITION
         offset12 = limit_bits((offset >> 11), 1)
         offset12 += limit_bits((offset >> 1), 4) << 1
@@ -87,10 +87,14 @@ def translate_pseudo(ins):
     match mne:
         case 'li':
             rd = ins[1]
-            imm = int(ins[2])
+            imm = int(ins[2], base=0)
             upper_lim = 1 << 12
-            upper_bits = limit_bits((imm >> 12), 20)
+            sign_lim = 1 << 11
             lower_bits = limit_bits(imm, 12)
+            upper_bits = limit_bits((imm >> 12), 20)
+            if lower_bits >= sign_lim:
+                upper_bits = limit_bits(upper_bits + 1, 20)
+            print(f'0x{upper_bits:X}')
             translated = []
             if imm >= upper_lim:
                 translated.append(['lui', rd, str(upper_bits)])
@@ -133,13 +137,13 @@ def encode_instruction(ins):
         encoded += limit_bits(REGISTERS[rs2], 5) << 20
     elif mne in UTYPE:
         rd = ins[1]
-        imm = int(ins[2])
+        imm = int(ins[2], base=0)
         encoded += limit_bits(REGISTERS[rd], 5) << 7
         encoded += limit_bits(imm, 20)          << 12
     elif mne in ITYPE:
         rd = ins[1]
         rs1 = ins[2]
-        imm = int(ins[3])
+        imm = int(ins[3], base=0)
         encoded += limit_bits(REGISTERS[rd], 5)  << 7
         encoded += limit_bits(FUNCT3[mne], 3)    << 12
         encoded += limit_bits(REGISTERS[rs1], 5) << 15
@@ -147,7 +151,7 @@ def encode_instruction(ins):
     elif mne in SBTYPE:
         rs1 = ins[1]
         rs2 = ins[2]
-        imm = int(ins[3])
+        imm = int(ins[3], base=0)
         encoded += limit_bits(imm, 5)            << 7
         encoded += limit_bits(FUNCT3[mne], 3)    << 12
         encoded += limit_bits(REGISTERS[rs1], 5) << 15
@@ -165,5 +169,5 @@ if __name__ == '__main__':
         for instruction in translated:
             encoded = encode_instruction(instruction)
             print(f'0x{encoded:08X}')
-    except:
-        print('Erro de sintaxe na instrucao!')
+    except Exception as e:
+        print(f'Erro de sintaxe na instrucao! Erro: {e}')

@@ -13,3 +13,4 @@ main:
     mul s2, s1, s0
     lui s1, 5000
     li s0, 5000
+    li s1, 0xDEADBEEF
