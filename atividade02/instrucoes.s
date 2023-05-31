@@ -1,7 +1,9 @@
 .text:
 main:
     addi s0, s1, 12
+    addi s0, s1, -50
     slli s0, s1, 12
+    slli ra, ra, 0b10110 # 0b10110 == -10
     xor s0, s1, s2
     jal ra, 40
     ret

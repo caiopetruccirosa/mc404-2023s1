@@ -37,13 +37,13 @@ def preprocess_raw_instruction(raw_ins):
     Retorno:
     ins (list of string): uma lista de 'tokens' que descrevem a instrucao 'raw_ins'
     '''
-    ins = re.split('\s+', re.sub('\W+', ' ', raw_ins).strip().lower())
+    ins = re.split('\s+', re.sub('[\s(),]+', ' ', raw_ins).strip().lower())
     mne = ins[0]
-    if mne == "lw":
+    if mne == 'lw':
         _, _, imm, rs2 = ins
         ins[2] = rs2
         ins[3] = imm
-    elif mne == "sw":
+    elif mne == 'sw':
         _, rs2, imm, rs1 = ins
         ins[1] = rs1
         ins[2] = rs2
@@ -159,8 +159,11 @@ def encode_instruction(ins):
 # Main
 ###
 if __name__ == '__main__':
-    preprocessed = preprocess_raw_instruction(input())
-    translated = translate_pseudo(preprocessed)
-    for instruction in translated:
-        encoded = encode_instruction(instruction)
-        print(f'0x{encoded:08X}')
+    try:
+        preprocessed = preprocess_raw_instruction(input())
+        translated = translate_pseudo(preprocessed)
+        for instruction in translated:
+            encoded = encode_instruction(instruction)
+            print(f'0x{encoded:08X}')
+    except:
+        print('Erro de sintaxe na instrucao!')
