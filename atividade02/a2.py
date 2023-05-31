@@ -24,52 +24,65 @@ def limit_bits(num, n):
     lim = (1 << n) - 1
     return num & lim
 
-def preprocess_raw_instruction(raw_ins):
-    '''Preprocessa uma instrucao, dividindo a instrucao em 'tokens'
-    e reordenando esses tokens dependendo da instrucao. Tambem transforma
-    os imediatos em alguns casos (para as instrucoes 'slli', 'beq' e 'call')
-    de acordo com a especificacao de codificacao de instrucoes do RISC-V, afim
-    de facilitar a codificacao.
+def tokenize_instruction(raw_ins):
+    '''Divide a instrucao 'ins' em tokens, substituindo uma sequencia composta pelos
+    carateres '(', ')', ',' e ' ' pelo caracter ' ' e entao separando os tokens de 
+    acordo com o delimitador ' '.
 
     Parametros:
     - raw_ins (string): uma instrucao RISC-V, como 'addi t0, t1, 10' ou 'lw s0, 0(s1)'.
 
     Retorno:
-    - ins (list of string): uma lista de 'tokens' que descrevem a instrucao 'raw_ins'
+    - ins (list of string): uma lista de 'tokens' que descrevem a instrucao 'raw_ins'.
     '''
-    ins = re.split('\s+', re.sub('[\s(),]+', ' ', raw_ins).strip().lower())
+    return re.split('\s+', re.sub('[\s(),]+', ' ', raw_ins).strip().lower())
+
+def preprocess_instruction(ins):
+    '''Preprocessa uma instrucao dividida em tokens, reordenando estes tokens 
+    dependendo da instrucao e, em alguns casos (para as instrucoes 'slli', 'beq' 
+    e 'jal'), manipula os imediatos de acordo com a especificacao de codificacao 
+    de instrucoes do RISC-V.
+
+    Parametros:
+    - ins (list of string): uma lista de 'tokens' que descrevem a instrucao uma instrucao do RISC-V
+
+    Retorno:
+    - ins (list of string): uma lista de 'tokens' que descrevem a instrucao processada
+    conforme indicado.
+    '''
     mne = ins[0]
-    if mne == 'lw':
-        _, _, imm, rs2 = ins
-        ins[2] = rs2
-        ins[3] = imm
-    elif mne == 'sw':
-        _, rs2, imm, rs1 = ins
-        ins[1] = rs1
-        ins[2] = rs2
-        ins[3] = imm
-    elif mne == 'slli':
-        imm = int(ins[3], base=0)
-        limited_imm = limit_bits(imm, 5)
-        ins[3] = str(limited_imm)
-    elif mne == 'call':
-        imm = int(ins[1], base=0)
-        offset = imm - INSTRUCTION_POSITION
-        offset20 = limit_bits((offset >> 20), 1) << 19
-        offset20 += limit_bits((offset >> 1), 10) << 9
-        offset20 += limit_bits((offset >> 11), 1) << 8
-        offset20 += limit_bits((offset >> 12), 8)
-        offset20 = limit_bits(offset20, 20)
-        ins[1] = str(offset20)
-    elif mne == 'beq':
-        imm = int(ins[3], base=0)
-        offset = imm - INSTRUCTION_POSITION
-        offset12 = limit_bits((offset >> 11), 1)
-        offset12 += limit_bits((offset >> 1), 4) << 1
-        offset12 += limit_bits((offset >> 5), 6) << 5
-        offset12 += limit_bits((offset >> 12), 1) << 11
-        offset12 = limit_bits(offset12, 12)
-        ins[3] = str(offset12)
+    match mne:
+        case 'lw':
+            _, _, imm, rs2 = ins
+            ins[2] = rs2
+            ins[3] = imm
+        case 'sw':
+            _, rs2, imm, rs1 = ins
+            ins[1] = rs1
+            ins[2] = rs2
+            ins[3] = imm
+        case 'slli':
+            imm = int(ins[3], base=0)
+            limited_imm = limit_bits(imm, 5)
+            ins[3] = str(limited_imm)
+        case 'jal':
+            imm = int(ins[2], base=0)
+            offset = imm - INSTRUCTION_POSITION
+            offset20 = limit_bits((offset >> 20), 1) << 19
+            offset20 += limit_bits((offset >> 1), 10) << 9
+            offset20 += limit_bits((offset >> 11), 1) << 8
+            offset20 += limit_bits((offset >> 12), 8)
+            offset20 = limit_bits(offset20, 20)
+            ins[2] = str(offset20)
+        case 'beq':
+            imm = int(ins[3], base=0)
+            offset = imm - INSTRUCTION_POSITION
+            offset12 = limit_bits((offset >> 11), 1)
+            offset12 += limit_bits((offset >> 1), 4) << 1
+            offset12 += limit_bits((offset >> 5), 6) << 5
+            offset12 += limit_bits((offset >> 12), 1) << 11
+            offset12 = limit_bits(offset12, 12)
+            ins[3] = str(offset12)
     return ins
 
 def translate_pseudo(ins):
@@ -97,14 +110,13 @@ def translate_pseudo(ins):
             imm = int(ins[2], base=0)
             lower_bits = limit_bits(imm, 12)
             upper_bits = limit_bits((imm >> 12), 20)
-            translated = []
             if (imm >= (1 << 11)) or (imm < ((1 << 11)*(-1))):
                 lower_sign = (lower_bits >> 11) & 1
                 if lower_sign == 1:
                     upper_bits = limit_bits(upper_bits + 1, 20)
-                translated.append(['lui', rd, str(upper_bits)])
-            translated.append(['addi', rd, rd, str(lower_bits)])
-            return translated
+                return [['lui', rd, str(upper_bits)], ['addi', rd, rd, str(lower_bits)]]
+            else:
+                return [['addi', rd, 'zero', str(lower_bits)]]
         case 'call':
             # Transforma a instrucao 'call imm' em 'jal ra, imm'.
             return [['jal', 'ra', ins[1]]]
@@ -171,10 +183,11 @@ def encode_instruction(ins):
 ###
 if __name__ == '__main__':
     try:
-        preprocessed = preprocess_raw_instruction(input())
-        translated = translate_pseudo(preprocessed)
+        tokenized = tokenize_instruction(input())
+        translated = translate_pseudo(tokenized)
         for instruction in translated:
-            encoded = encode_instruction(instruction)
+            preprocessed = preprocess_instruction(instruction)
+            encoded = encode_instruction(preprocessed)
             print(f'0x{encoded:08X}')
     except Exception as e:
         print(f'Erro de sintaxe na instrucao! Erro: {e}')
