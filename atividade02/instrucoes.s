@@ -16,3 +16,5 @@ main:
     li s1, 0xDEADBEEF
     li a0, -0xDEADBEEF
     li fp, 0b11110010101111111001100110000000
+    li t0, -4090
+    li t0, -2000

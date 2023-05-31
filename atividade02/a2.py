@@ -86,12 +86,19 @@ def translate_pseudo(ins):
     mne = ins[0]
     match mne:
         case 'li':
+            # Transforma a instrucao 'li rd, imm' em:
+            # - 'addi rd, rd, imm': caso o numero seja menor que 2^(11) e maior igual a -(2^(11))
+            # - 'lui rd, imm[31:12]' + 'addi rd, rd, imm[11:0]': caso o numero nao possa ser representado
+            #                                                    apenas com um 'addi' conforme a descricao acima. 
+            # A conversao considera que todos os numeros estao representados em complemento de 2 e, portanto,
+            # possuem sinal. Alem disso, em alguns casos, eh necessario levar em conta a extensao de sinal que
+            # sera feita pelo 'addi' e seu efeito na construcao do numero 'imm'.
             rd = ins[1]
             imm = int(ins[2], base=0)
             lower_bits = limit_bits(imm, 12)
             upper_bits = limit_bits((imm >> 12), 20)
             translated = []
-            if (imm >= (1 << 12)) or (imm < ((1 << 12)*(-1))):
+            if (imm >= (1 << 11)) or (imm < ((1 << 11)*(-1))):
                 lower_sign = (lower_bits >> 11) & 1
                 if lower_sign == 1:
                     upper_bits = limit_bits(upper_bits + 1, 20)
@@ -99,8 +106,10 @@ def translate_pseudo(ins):
             translated.append(['addi', rd, rd, str(lower_bits)])
             return translated
         case 'call':
+            # Transforma a instrucao 'call imm' em 'jal ra, imm'.
             return [['jal', 'ra', ins[1]]]
         case 'ret':
+            # Transforma a instrucao 'ret' em 'jalr zero, ra, 0'.
             return [['jalr', 'zero', 'ra', '0']]
         case _:
             return [ins]
