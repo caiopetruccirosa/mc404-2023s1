@@ -15,11 +15,11 @@ def limit_bits(num, n):
     '''Limita o numero bits de um numero inteiro.
 
     Parametros:
-    num (int): numero a ser limitado
-    n (int): numero de bits que o retorno deve conter
+    - num (int): numero a ser limitado
+    - n (int): numero de bits que o retorno deve conter
 
     Retorno:
-    int: o numero 'num' contendo apenas 'n' bits
+    - int: o numero 'num' contendo apenas 'n' bits
     '''
     lim = (1 << n) - 1
     return num & lim
@@ -32,10 +32,10 @@ def preprocess_raw_instruction(raw_ins):
     de facilitar a codificacao.
 
     Parametros:
-    raw_ins (string): uma instrucao RISC-V, como 'addi t0, t1, 10' ou 'lw s0, 0(s1)'.
+    - raw_ins (string): uma instrucao RISC-V, como 'addi t0, t1, 10' ou 'lw s0, 0(s1)'.
 
     Retorno:
-    ins (list of string): uma lista de 'tokens' que descrevem a instrucao 'raw_ins'
+    - ins (list of string): uma lista de 'tokens' que descrevem a instrucao 'raw_ins'
     '''
     ins = re.split('\s+', re.sub('[\s(),]+', ' ', raw_ins).strip().lower())
     mne = ins[0]
@@ -77,10 +77,10 @@ def translate_pseudo(ins):
     o que eh o caso de pseudoinstrucoes como 'li', 'call' e 'ret'.
 
     Parametros:
-    ins (list of string): uma instrucao RISC-V ja preprocessada.
+    - ins (list of string): uma instrucao RISC-V ja preprocessada.
 
     Retorno:
-    translated (list of list of string): uma lista de instrucoes nativas RISC-V 
+    - translated (list of list of string): uma lista de instrucoes nativas RISC-V 
     que equivalem a instrucao 'ins'.
     '''
     mne = ins[0]
@@ -119,10 +119,10 @@ def encode_instruction(ins):
     A lista de instrucoes que podem ser codificadas sao: 'addi', 'slli', 'xor', 'beq', 'lw', 'sw', 'mul', 'lui', 'jal' e 'jalr'.
 
     Parametros:
-    ins (list of string): uma instrucao nativa RISC-V ja preprocessada.
+    - ins (list of string): uma instrucao nativa RISC-V ja preprocessada.
 
     Retorno:
-    encoded (int): um inteiro de 32 bits que descreve a instrucao 'ins' codificada de acordo com a especificacao do RISC-V.
+    - encoded (int): um inteiro de 32 bits que descreve a instrucao 'ins' codificada de acordo com a especificacao do RISC-V.
     '''
     REGISTERS = { 'zero': 0, 'ra': 1, 'sp': 2, 'gp': 3, 'tp': 4, 't0': 5, 't1': 6, 't2': 7, 's0': 8, 'fp': 8, 's1': 9, 'a0': 10, 'a1': 11, 'a2': 12, 'a3': 13, 'a4': 14, 'a5': 15, 'a6': 16, 'a7': 17, 's2': 18, 's3': 19, 's4': 20, 's5': 21, 's6': 22, 's7': 23, 's8': 24, 's9': 25, 's10': 26, 's11': 27, 't3': 28, 't4': 29, 't5': 30, 't6': 31 }
     OPCODES = { 'addi': 19, 'slli': 19, 'xor': 51, 'beq': 99, 'lw': 3, 'sw': 35, 'mul': 51, 'lui': 55, 'jal': 111, 'jalr': 103 }
