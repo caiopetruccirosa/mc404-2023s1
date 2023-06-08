@@ -80,7 +80,7 @@ imprime_delimitador:
     j loop_ImprimeVetor
 
 fim_loop_ImprimeVetor:
-    # Imprime caracter de nova linha ('\n')
+    # Imprime caracter de nova linha '\n'
     li a0, 11
     li a1, 13
     ecall
@@ -137,7 +137,7 @@ LeNumero:
     mv s1, zero
 
     # Inicia a leitura do teclado
-    li    a0, 0x130
+    li a0, 0x130
     ecall
 
 loop_LeNumero:

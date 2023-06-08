@@ -24,7 +24,7 @@ main:
     mv a1, s0
     ecall
 
-    # Imprime caracter de nova linha ('\n')
+    # Imprime caracter de nova linha '\n'
     li a0, 11
     li a1, 13
     ecall

@@ -175,7 +175,7 @@ LeString:   # Le uma string e armazena no endereço passado
     sw    ra, 0(sp)
 
     mv    s0, a0
-    li    a0, 0x130
+    li a0, 0x130
     ecall           # inicia a leitura do teclado
 l4: li    a0, 0x131 # tenta ler um caracter
     ecall

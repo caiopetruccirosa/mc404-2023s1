@@ -24,7 +24,7 @@ LeNumero:
     mv s1, zero
 
     # Inicia a leitura do teclado
-    li    a0, 0x130
+    li a0, 0x130
     ecall
 
 loop_LeNumero:
