@@ -74,7 +74,7 @@ loop_gets:
 
 fim_loop_gets:
     # Adiciona caracter nulo no fim da string
-    sb zero, 1(s0)
+    sb zero, 0(s0)
 
     # Define retorno da funcao
     sub a0, s0, s1

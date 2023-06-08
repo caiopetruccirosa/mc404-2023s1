@@ -49,7 +49,7 @@ fgets:
     sw s1, 4(sp)
     sw s2, 8(sp)
 
-    # Define endereco da string e tamanho da string
+    # Define endereco da string e tamanho maximo da string
     mv s0, a0
     mv s2, a1
     li s1, 0
@@ -83,7 +83,7 @@ loop_fgets:
 
 fim_loop_fgets:
     # Adiciona caracter nulo no fim da string
-    sb zero, 1(s0)
+    sb zero, 0(s0)
 
     # Define retorno da funcao
     sub a0, s0, s1
@@ -93,5 +93,4 @@ fim_loop_fgets:
     lw s1, 4(sp)
     lw s2, 8(sp)
     addi sp, sp, 12
-
     ret
