@@ -8,24 +8,24 @@
 
 .text
 main:
-  li a0, 4
-  la a1, mensagem1
-  ecall
+    li a0, 4
+    la a1, mensagem1
+    ecall
 
-  la   a0, str
-  call LeString    # Le o N
+    la   a0, str
+    call LeString    # Le o N
 
-  la   a0, str
-  call ConverteNumero # Converte para número
-  mv   s0, a0
+    la   a0, str
+    call ConverteNumero # Converte para número
+    mv   s0, a0
 
-  call MediaNElementos # Le N elementos e retorna a média dos N elementos
+    call MediaNElementos # Le N elementos e retorna a média dos N elementos
 
-  call ImprimeMedia # Imprime a mensagem indicando a média dos N elementos
+    call ImprimeMedia # Imprime a mensagem indicando a média dos N elementos
 
-  li a0, 10       # Encerra o programa
-  ecall
-  ret
+    li a0, 10       # Encerra o programa
+    ecall
+    ret
 
 
 MediaNElementos:   # Le N elementos e retorna a media deles
